@@ -88,7 +88,8 @@ class BingAdapter:
             await self.on_reset()
             return 
         except (RequestException, SSLError, ProxyError, MaxRetryError, HTTPStatusError, ConnectTimeout, ConnectError) as e:  # 网络异常
-            yield self.ask(prompt)
+            async for res in self.ask(prompt):
+                yield res
             return
         except Exception as e:
             yield "Bing 已结束本次会话。继续发送消息将重新开启一个新会话。"
