@@ -13,6 +13,7 @@ from utils import *
 class BingAdapter:
     cookieData = None
     count: int = 0
+    reconnect_try_count: int = 0
 
     conversation_style: ConversationStyle = None
 
@@ -26,6 +27,9 @@ class BingAdapter:
         for line in config.bing_cookie.split("; "):
             name, value = line.split("=", 1)
             self.cookieData.append({"name": name, "value": value})
+        self.init_bot()
+
+    def init_bot(self):
         while True:
             try:
                 if config.need_loc_proxy:
@@ -66,7 +70,7 @@ class BingAdapter:
                         max_messages = response["item"]["throttling"]["maxNumUserMessagesInConversation"]
                     except:
                         max_messages = config.context_length
-                    remaining_conversations = f'\n剩余回复数：{self.count} / {max_messages} '
+                    remaining_conversations = f'\n本次回复数：{self.count} / {max_messages} '
                     if len(response["item"].get('messages', [])) > 1 and config.bing_show_suggestions:
                         suggestions = response["item"]["messages"][-1].get("suggestedResponses", [])
                         if len(suggestions) > 0:
@@ -83,13 +87,27 @@ class BingAdapter:
 
                 yield parsed_content
             # print("[Bing AI 响应] " + parsed_content)
+            self.reconnect_try_count = 0 # 成功连接到服务器，重置重连次数
         except NotAllowedToAccess as e:
             yield "Bing 服务需要重新认证。"
             await self.on_reset()
             return 
-        except (RequestException, SSLError, ProxyError, MaxRetryError, HTTPStatusError, ConnectTimeout, ConnectError) as e:  # 网络异常
-            async for res in self.ask(prompt):
-                yield res
+        except ConnectError as e: # 说明第三方库在reset的时候发生了异常，需要重新创建实例
+            self.init_bot()
+            if self.reconnect_try_count < 5:
+                self.reconnect_try_count += 1
+                async for res in self.ask(prompt):
+                    yield res
+            else:
+                raise e
+            return
+        except (RequestException, SSLError, ProxyError, MaxRetryError, HTTPStatusError, ConnectTimeout) as e:  # 网络异常
+            if self.reconnect_try_count < 5:
+                self.reconnect_try_count += 1
+                async for res in self.ask(prompt):
+                    yield res
+            else:
+                raise e
             return
         except Exception as e:
             yield "Bing 已结束本次会话。继续发送消息将重新开启一个新会话。"

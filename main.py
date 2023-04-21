@@ -147,7 +147,8 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
                         # print(f"上次文本：{pre_context} \n这次文本：{res}")
                         res = res.replace(pre_context,"",1)
                         pre_context = temp_context
-                        at_user_in_group_with_voice(sender, sender, res + "\n(我还在思考中，请稍等..)", group_id, Prefix = Prefix)
+                        if (len(res) > 0):
+                            at_user_in_group_with_voice(sender, sender, res + "\n(我还在思考中，请稍等..)", group_id, Prefix = Prefix)
             except Exception as e:
                 send_err_to_group(sender, e, group_id)
                 return
