@@ -131,31 +131,34 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
     elif global_var.admin_setGPT['model'] == "bing"\
     or global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model == "bing":
         # bing 流式对话
-        import asyncio
-        import chat_api.bing
-        if global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter is None:
-            global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter = chat_api.bing.BingAdapter()
-        async def print_ask(question):
-            pre_context = ""
-            try:
-                start_time = time.time()
-                async for res in global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter.ask(question):
-                    cur_time = time.time()
-                    if (cur_time - start_time > 30):
-                        start_time = cur_time
-                        temp_context = res
-                        # print(f"上次文本：{pre_context} \n这次文本：{res}")
-                        res = res.replace(pre_context,"",1)
-                        pre_context = temp_context
-                        if (len(res) > 0):
-                            at_user_in_group_with_voice(sender, sender, res + "\n(我还在思考中，请稍等..)", group_id, Prefix = Prefix)
-            except Exception as e:
-                send_err_to_group(sender, e, group_id)
-                return
-            res = res.replace(pre_context,"",1)
-            return res
-        answer = asyncio.run(print_ask(question))
-        at_user_in_group_with_voice(sender, sender, answer, group_id, Prefix = Prefix)
+        try:
+            import asyncio
+            import chat_api.bing
+            if global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter is None:
+                global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter = chat_api.bing.BingAdapter()
+            async def print_ask(question):
+                pre_context = ""
+                try:
+                    start_time = time.time()
+                    async for res in global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter.ask(question):
+                        cur_time = time.time()
+                        if (cur_time - start_time > 30):
+                            start_time = cur_time
+                            temp_context = res
+                            # print(f"上次文本：{pre_context} \n这次文本：{res}")
+                            res = res.replace(pre_context,"",1)
+                            pre_context = temp_context
+                            if (len(res) > 0):
+                                at_user_in_group_with_voice(sender, sender, res + "\n(我还在思考中，请稍等..)", group_id, Prefix = Prefix)
+                except Exception as e:
+                    send_err_to_group(sender, e, group_id)
+                    return
+                res = res.replace(pre_context,"",1)
+                return res
+            answer = asyncio.run(print_ask(question))
+            at_user_in_group_with_voice(sender, sender, answer, group_id, Prefix = Prefix)
+        except Exception as e:
+            send_err_to_group(sender, e, group_id)
         return
 
     elif not global_var.use_chatgpt:

@@ -37,10 +37,10 @@ class BingAdapter:
                 else:
                     self.bot = EdgeChatbot(cookies=self.cookieData)
                 break;
-            except ConnectError as e:
-                continue
+            # except ConnectError as e:
+            #     continue
             except Exception as e:
-                break
+                raise e
 
     async def rollback(self):
         raise "BotOperationNotSupportedException"
@@ -87,28 +87,28 @@ class BingAdapter:
 
                 yield parsed_content
             # print("[Bing AI 响应] " + parsed_content)
-            self.reconnect_try_count = 0 # 成功连接到服务器，重置重连次数
+            # self.reconnect_try_count = 0 # 成功连接到服务器，重置重连次数
         except NotAllowedToAccess as e:
             yield "Bing 服务需要重新认证。"
             await self.on_reset()
             return 
-        except ConnectError as e: # 说明第三方库在reset的时候发生了异常，需要重新创建实例
-            self.init_bot()
-            if self.reconnect_try_count < 5:
-                self.reconnect_try_count += 1
-                async for res in self.ask(prompt):
-                    yield res
-            else:
-                raise e
-            return
-        except (RequestException, SSLError, ProxyError, MaxRetryError, HTTPStatusError, ConnectTimeout) as e:  # 网络异常
-            if self.reconnect_try_count < 5:
-                self.reconnect_try_count += 1
-                async for res in self.ask(prompt):
-                    yield res
-            else:
-                raise e
-            return
+        # except ConnectError as e: # 说明第三方库在reset的时候发生了异常，需要重新创建实例
+        #     self.init_bot()
+        #     if self.reconnect_try_count < 5:
+        #         self.reconnect_try_count += 1
+        #         async for res in self.ask(prompt):
+        #             yield res
+        #     else:
+        #         raise e
+        #     return
+        # except (RequestException, SSLError, ProxyError, MaxRetryError, HTTPStatusError, ConnectTimeout, ConnectError) as e:  # 网络异常
+        #     if self.reconnect_try_count < 5:
+        #         self.reconnect_try_count += 1
+        #         async for res in self.ask(prompt):
+        #             yield res
+        #     else:
+        #         raise e
+        #     return
         except Exception as e:
             yield "Bing 已结束本次会话。继续发送消息将重新开启一个新会话。"
             await self.on_reset()
