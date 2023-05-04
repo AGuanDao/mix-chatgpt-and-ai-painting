@@ -136,6 +136,14 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
             import chat_api.bing
             if global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter is None:
                 global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter = chat_api.bing.BingAdapter()
+                # 加入bing预设 start
+                cur_prompt_model = global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model
+                bing_prompt = None
+                if "bing" in cur_prompt_model:
+                    bing_prompt = global_var.cur_multi_chatgpt_prompt_base.get(cur_prompt_model)
+                if bing_prompt and bing_prompt != "":
+                    asyncio.run(global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter.preset_ask(bing_prompt))
+                # 加入bing预设 end
             async def print_ask(question):
                 pre_context = ""
                 try:
