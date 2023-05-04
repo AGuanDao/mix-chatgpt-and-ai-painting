@@ -44,7 +44,6 @@ class BingAdapter:
             #     continue
             except Exception as e:
                 raise e
-        asyncio.run(self.preset_ask(self.preset_context))
 
     async def rollback(self):
         raise "BotOperationNotSupportedException"
@@ -52,7 +51,7 @@ class BingAdapter:
     async def on_reset(self):
         self.count = 0
         await self.bot.reset()
-        self.preset_ask(self.preset_context)
+        await self.preset_ask(self.preset_context)
 
     async def ask(self, prompt: str) -> Generator[str, None, None]:
         self.count = self.count + 1
@@ -86,7 +85,9 @@ class BingAdapter:
                     parsed_content = parsed_content + remaining_conversations
                     # not final的parsed_content已经yield走了，只能在末尾加剩余回复数，或者改用EdgeGPT自己封装的ask之后再正则替换
                     if parsed_content == remaining_conversations:  # No content
+                        # 执行 asyncio.run() 时，当前函数会被阻塞，直到协程运行完毕
                         self.init_bot()
+                        await self.preset_ask(self.preset_context)
                         yield "Bing 已结束本次会话。将重新开启一个新会话。"
                         return
 
@@ -116,6 +117,7 @@ class BingAdapter:
         #     return
         except Exception as e:
             self.init_bot()
+            await self.preset_ask(self.preset_context)
             yield "Bing 已结束本次会话。将重新开启一个新会话。"
             return
     async def preset_ask(self, text: str):

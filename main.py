@@ -129,7 +129,7 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
             send_err_to_group(sender, e, group_id)
             return
     elif global_var.admin_setGPT['model'] == "bing"\
-    or global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model == "bing":
+    or "bing" in global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model:
         # bing 流式对话
         try:
             import asyncio
