@@ -82,8 +82,8 @@ class BingAdapter:
                     parsed_content = parsed_content + remaining_conversations
                     # not final的parsed_content已经yield走了，只能在末尾加剩余回复数，或者改用EdgeGPT自己封装的ask之后再正则替换
                     if parsed_content == remaining_conversations:  # No content
+                        self.init_bot()
                         yield "Bing 已结束本次会话。将重新开启一个新会话。"
-                        await self.init_bot()
                         return
 
                 yield parsed_content
@@ -111,8 +111,8 @@ class BingAdapter:
         #         raise e
         #     return
         except Exception as e:
+            self.init_bot()
             yield "Bing 已结束本次会话。将重新开启一个新会话。"
-            await self.init_bot()
             return
     async def preset_ask(self, role: str, text: str):
         yield None  # Bing 不使用预设功能
