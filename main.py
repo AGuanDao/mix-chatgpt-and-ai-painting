@@ -156,6 +156,8 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
                 res = res.replace(pre_context,"",1)
                 return res
             answer = asyncio.run(print_ask(question))
+            if answer == "Bing 已结束本次会话。将重新开启一个新会话。": # 重试一次
+                answer = asyncio.run(print_ask(question))
             at_user_in_group_with_voice(sender, sender, answer, group_id, Prefix = Prefix)
         except Exception as e:
             send_err_to_group(sender, e, group_id)
