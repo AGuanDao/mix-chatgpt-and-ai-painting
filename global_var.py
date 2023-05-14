@@ -64,8 +64,8 @@ def load_all_user_data():
 def init():
     global last_msg_id_of_user, image_gen_messages, is_remote_machine, banned_user_id, \
     is_gpu_connected, ws, gpu_connect_confirm_timer, auth_vip_id, use_chatgpt, billing_chatgpt, \
-    admin_setGPT, user_cache, user_unstore_cache, cur_multi_chatgpt_prompt_base, common_chat_history, reg_dirty, \
-    cwd_path
+    admin_setGPT, user_cache, user_unstore_cache, cur_multi_chatgpt_prompt_base, \
+    common_chat_history, reg_dirty, cwd_path, claude_client
     last_msg_id_of_user = {}
     image_gen_messages = []
     is_remote_machine = False
@@ -87,6 +87,10 @@ def init():
     admin_setGPT = {"model":"gpt-3.5-turbo"}
 
     ws = None
+    claude_client = None
+    if config.OPEN_CLAUDE:
+        from chat_api.claude import create_claude
+        claude_client = create_claude()
 
     def timer_handler():
         global is_gpu_connected

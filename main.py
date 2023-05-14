@@ -107,7 +107,17 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
     ##图生图接入 end
 
     answer = ""
-    if global_var.admin_setGPT['model'] == "gpt-4"\
+    if global_var.claude_client and \
+        "claude" in global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model:
+        try:
+            import asyncio
+            asyncio.run(global_var.claude_client.open_channel())
+            asyncio.run(global_var.claude_client.chat(question))
+            answer = asyncio.run(global_var.claude_client.get_reply())
+        except Exception as e:
+            send_err_to_group(sender, e, group_id)
+            return
+    elif global_var.admin_setGPT['model'] == "gpt-4"\
     or global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model == "gpt4":
         try:
             if not chatbot:

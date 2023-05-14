@@ -29,6 +29,9 @@ wait_api_key = [
 email = ""  # openai的邮箱
 password = ""  # openai的密码
 bing_cookie = "" # newbing的cookie
+OPEN_CLAUDE = False
+CLAUDE_BOT_ID = ""
+SLACK_USER_TOKEN = ""
 
 ws_url = "ws://127.0.0.1:8080"  # 服务端的cqhttp地址
 chatglm_url = "http://127.0.0.1:8000" # 本地的ChatGLM服务地址
@@ -163,6 +166,7 @@ multi_chatgpt_prompt_base = {
   'chatgpt': '你是AI 帮助人们回答问题。',
   'gpt4': '', #代码中特写
   'bing': '',
+  'claude(群内共享对话)': '',
 }
 
 common_chat_history = {}

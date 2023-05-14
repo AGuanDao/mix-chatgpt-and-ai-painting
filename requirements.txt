@@ -14,3 +14,4 @@ openjtalk
 cn2an
 pillow
 EdgeGPT==0.1.22
+slack_sdk
