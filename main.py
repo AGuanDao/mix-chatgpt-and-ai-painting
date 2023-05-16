@@ -138,6 +138,51 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
         except Exception as e:
             send_err_to_group(sender, e, group_id)
             return
+    elif global_var.admin_setGPT['model'] == "sydney"\
+    or "sydney" in global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model:
+        # sydney 流式对话
+        try:
+            import asyncio
+            import chat_api.bing
+            
+            if global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter is None:
+                global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter = chat_api.bing.BingAdapter()
+                # 加入sydney预设 start
+                cur_prompt_model = global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model
+                bing_prompt = None
+                if "sydney" in cur_prompt_model:
+                    bing_prompt = global_var.cur_multi_chatgpt_prompt_base.get(cur_prompt_model)
+                if bing_prompt and bing_prompt != "":
+                    asyncio.run(global_var.get_user_unstore_cache(get_history_id(group_id, sender))\
+                                .BingAdapter.preset_ask(bing_prompt,webpage_context = sydney_prompt_base))
+                # 加入sydney预设 end
+            async def print_ask_sydney(question):
+                pre_context = ""
+                try:
+                    start_time = time.time()
+                    async for res in global_var.get_user_unstore_cache(get_history_id(group_id, sender))\
+                    .BingAdapter.ask(question,webpage_context = sydney_prompt_base):
+                        cur_time = time.time()
+                        if (cur_time - start_time > 30):
+                            start_time = cur_time
+                            temp_context = res
+                            # print(f"上次文本：{pre_context} \n这次文本：{res}")
+                            res = res.replace(pre_context,"",1)
+                            pre_context = temp_context
+                            if (len(res) > 0):
+                                at_user_in_group_with_voice(sender, sender, res + "\n(我还在思考中，请稍等..)", group_id, Prefix = Prefix)
+                except Exception as e:
+                    send_err_to_group(sender, e, group_id)
+                    return
+                res = res.replace(pre_context,"",1)
+                return res
+            answer = asyncio.run(print_ask_sydney(question))
+            if answer == "Sydney 已结束本次会话。将重新开启一个新会话。": # 重试一次
+                answer = asyncio.run(print_ask_sydney(question))
+            at_user_in_group_with_voice(sender, sender, answer, group_id, Prefix = Prefix)
+        except Exception as e:
+            send_err_to_group(sender, e, group_id)
+        return
     elif global_var.admin_setGPT['model'] == "bing"\
     or "bing" in global_var.get_user_cache(get_history_id(group_id, sender)).chat_prompt_model:
         # bing 流式对话
@@ -154,7 +199,7 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
                 if bing_prompt and bing_prompt != "":
                     asyncio.run(global_var.get_user_unstore_cache(get_history_id(group_id, sender)).BingAdapter.preset_ask(bing_prompt))
                 # 加入bing预设 end
-            async def print_ask(question):
+            async def print_ask_bing(question):
                 pre_context = ""
                 try:
                     start_time = time.time()
@@ -173,9 +218,9 @@ def chat_handler_thread(group_id, question, sender, Prefix = ""):
                     return
                 res = res.replace(pre_context,"",1)
                 return res
-            answer = asyncio.run(print_ask(question))
+            answer = asyncio.run(print_ask_bing(question))
             if answer == "Bing 已结束本次会话。将重新开启一个新会话。": # 重试一次
-                answer = asyncio.run(print_ask(question))
+                answer = asyncio.run(print_ask_bing(question))
             at_user_in_group_with_voice(sender, sender, answer, group_id, Prefix = Prefix)
         except Exception as e:
             send_err_to_group(sender, e, group_id)

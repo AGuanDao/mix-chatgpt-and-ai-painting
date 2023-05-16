@@ -6,7 +6,9 @@
 
 a bot application running on Tencent QQ that integrates GPT chatbot capabilities with AI painting.
 
-一个运行于腾讯qq上的, 将gpt聊天能力与ai绘画集成的机器人应用.
+一个运行于腾讯qq上的, 将gpt聊天能力、ai语音vits与ai绘画集成的机器人应用.
+目前支持chatgpt/gpt4/bing/sydney/claude/chatglm等语言模型.
+支持自定义对话人设.支持保存对话内容后重启——防止对话丢失.
 
 Due to limited personal energy, currently this project is mainly aimed at Chinese users. If I have time in the
 future, I may add more internationalization support. For English users, it should not be difficult to understand with
@@ -36,6 +38,8 @@ user image analysis. If this project can inspire or help you, I would be honored
 
   - 然后，您可以通过使用指定版本号的pip install命令来安装所需的版本：
   pip install urllib3==1.25.11
+
+  如果你正在使用Clash进行连接，可以在 clash 的 setting 中打开 special protocol 选项
 
 如有使用问题, 可加qq群283430436交流, 也可进行试玩
 

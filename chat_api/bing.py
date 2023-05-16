@@ -4,7 +4,7 @@ from requests.exceptions import SSLError, ProxyError, RequestException
 from urllib3.exceptions import MaxRetryError
 from httpx import HTTPStatusError, ConnectTimeout, ConnectError
 
-from EdgeGPT import Chatbot as EdgeChatbot, ConversationStyle, NotAllowedToAccess
+from EdgeGPT_local import Chatbot as EdgeChatbot, ConversationStyle, NotAllowedToAccess
 
 import re
 import config
@@ -53,13 +53,14 @@ class BingAdapter:
         await self.bot.reset()
         await self.preset_ask(self.preset_context)
 
-    async def ask(self, prompt: str) -> Generator[str, None, None]:
+    async def ask(self, prompt: str, **kvargs) -> Generator[str, None, None]:
         self.count = self.count + 1
         parsed_content = ''
         try:
             async for final, response in self.bot.ask_stream(prompt=prompt,
                                                              conversation_style=self.conversation_style,
-                                                             wss_link=config.bing_wss_link):
+                                                             wss_link=config.bing_wss_link,
+                                                             **kvargs):
                 if not final:
                     response = re.sub(r"\[\^\d+\^\]", "", response)
                     if config.bing_show_references:
@@ -120,12 +121,12 @@ class BingAdapter:
             await self.preset_ask(self.preset_context)
             yield "Bing 已结束本次会话。将重新开启一个新会话。"
             return
-    async def preset_ask(self, text: str):
+    async def preset_ask(self, text: str, **kvargs):
         assert(self.count==0)
         self.preset_context = text
         if self.preset_context == "":
             return
-        async for res in self.ask(text):
+        async for res in self.ask(text, **kvargs):
             pass
         print (f"preset result:\n{res}")
         return
